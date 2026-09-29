@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<div class="card auth-card">
+    <h2>🔑 Log In</h2>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Username</label>
+        <input type="text" name="username" autocomplete="username" required>
+        <label>Password</label>
+        <input type="password" name="password" autocomplete="current-password" required>
+        <button type="submit" class="btn" style="width:100%;margin-top:16px">Log In</button>
+    </form>
+    <p class="center muted" style="margin-top:14px">New here? <a href="{{ url_for('register') }}" style="color:var(--primary);font-weight:700">Create an account</a></p>
+</div>
+{% endblock %}

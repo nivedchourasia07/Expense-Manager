@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Expense Manager{% endblock %}</title>
+    <style>
+        :root{--primary:#6c5ce7;--primary-dark:#5a4bd1;--bg:#f4f5fa;--card:#fff;--text:#2d3436;--muted:#8395a7;--green:#00b894;--red:#ff7675;--amber:#ffb84d;--radius:14px}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+        a{text-decoration:none}
+        .navbar{background:#fff;box-shadow:0 2px 12px rgba(93,83,227,.08);padding:16px 32px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50}
+        .brand{font-weight:800;font-size:1.25em;color:var(--primary)}
+        .brand span{color:var(--text)}
+        .nav-links a{color:var(--text);margin-left:20px;font-weight:600;font-size:.95em}
+        .nav-links a:hover{color:var(--primary)}
+        .flash{padding:12px 20px;border-radius:10px;margin:14px auto;max-width:1000px;font-weight:600}
+        .flash.success{background:#e6f9f1;color:#00875a;border:1px solid var(--green)}
+        .flash.error{background:#ffeceb;color:#c0392b;border:1px solid var(--red)}
+        .hero{text-align:center;padding:90px 20px 70px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff}
+        .hero h1{font-size:2.8em;margin-bottom:16px}
+        .hero p{font-size:1.15em;opacity:.95;max-width:560px;margin:0 auto 30px;line-height:1.6}
+        .btn{display:inline-block;background:var(--primary);color:#fff;padding:12px 28px;border-radius:10px;font-weight:700;border:none;cursor:pointer;font-size:1em;transition:.2s}
+        .btn:hover{background:var(--primary-dark);transform:translateY(-2px)}
+        .btn-outline{background:transparent;border:2px solid #fff;color:#fff;margin-left:12px}
+        .btn-outline:hover{background:rgba(255,255,255,.15)}
+        .btn-danger{background:var(--red)}
+        .btn-danger:hover{background:#e05c53}
+        .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;max-width:1000px;margin:-40px auto 0;padding:0 20px}
+        .feature{background:#fff;border-radius:var(--radius);padding:26px;box-shadow:0 4px 18px rgba(0,0,0,.07);text-align:center}
+        .feature .icon{font-size:2.2em}
+        .feature h3{margin:10px 0 6px;color:var(--primary)}
+        .feature p{color:var(--muted);font-size:.92em;line-height:1.5}
+        .section-title{text-align:center;margin:50px 0 20px;font-size:1.6em}
+        .container{max-width:1000px;margin:0 auto;padding:24px}
+        .card{background:var(--card);border-radius:var(--radius);padding:24px;margin:18px 0;box-shadow:0 3px 14px rgba(0,0,0,.06)}
+        .card h2{font-size:1.15em;margin-bottom:14px;color:var(--primary)}
+        label{display:block;margin:10px 0 4px;font-weight:600;font-size:.9em;color:#555}
+        input,select{width:100%;padding:11px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:.95em;background:#fafafa}
+        input:focus,select:focus{outline:none;border-color:var(--primary);background:#fff}
+        .check{display:inline-flex;align-items:center;gap:6px;margin:8px 14px 0 0;font-weight:600;font-size:.92em}
+        .check input{width:auto}
+        .hint{color:var(--muted);font-size:.82em;margin-top:6px}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin:20px 0}
+        .stat{background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;border-radius:var(--radius);padding:20px;text-align:center}
+        .stat .num{font-size:1.9em;font-weight:800}
+        .stat .lbl{opacity:.9;font-size:.88em;margin-top:4px}
+        .stat.alt{background:linear-gradient(135deg,#00b894,#55efc4)}
+        .stat.warn{background:linear-gradient(135deg,#e17055,#fab1a0)}
+        table{width:100%;border-collapse:collapse;margin-top:10px}
+        th{background:#f0eefc;color:var(--primary);padding:11px;text-align:left;font-size:.88em}
+        td{padding:11px;border-bottom:1px solid #f0f0f0;font-size:.93em}
+        tr:hover td{background:#faf9ff}
+        .badge{padding:4px 12px;border-radius:20px;font-size:.78em;font-weight:700}
+        .badge.green{background:#e6f9f1;color:#00875a}
+        .badge.red{background:#ffeceb;color:#c0392b}
+        .badge.gray{background:#f0f0f0;color:#777}
+        .badge.purple{background:#f0eefc;color:var(--primary)}
+        .settle{background:#fff8e6;border-left:4px solid var(--amber);padding:12px 16px;border-radius:8px;margin:8px 0;font-size:.95em}
+        .bar-row{margin:12px 0}
+        .bar-row .bar-head{display:flex;justify-content:space-between;font-size:.9em;font-weight:600;margin-bottom:5px}
+        .bar{background:#eee;border-radius:20px;height:14px;overflow:hidden}
+        .bar .fill{height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);border-radius:20px}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+        .info-box{background:#eef4ff;border-left:4px solid #54a0ff;padding:12px 16px;border-radius:8px;font-size:.9em;color:#33517a;margin-bottom:16px;line-height:1.5}
+        .auth-card{max-width:420px;margin:60px auto}
+        .muted{color:var(--muted)}
+        .center{text-align:center}
+        @media(max-width:720px){.grid-2{grid-template-columns:1fr}.hero h1{font-size:2em}}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('landing') }}" class="brand">🎓 Expense<span>Manager</span></a>
+        <div class="nav-links">
+            {% if session.username %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <form method="POST" action="{{ url_for('logout') }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn" style="padding:8px 18px">Log Out</button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('login') }}">Log In</a>
+                <a href="{{ url_for('register') }}" class="btn" style="padding:8px 18px">Sign Up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, msg in messages %}
+            <div class="flash {{ category }}">{{ msg }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>

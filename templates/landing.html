@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Home - Student Expense Manager{% endblock %}
+{% block content %}
+<div class="hero">
+    <h1>🎓 Student Expense Manager</h1>
+    <p>Track shared expenses, split bills fairly, and see exactly who owes whom — all in one simple place.</p>
+    <a href="{{ url_for('register') }}" class="btn">Create Free Account</a>
+    <a href="{{ url_for('login') }}" class="btn btn-outline">Log In</a>
+</div>
+
+<div class="features">
+    <div class="feature"><div class="icon">💸</div><h3>Split Any Bill</h3><p>Equally, by exact amounts, or by percentages — your choice.</p></div>
+    <div class="feature"><div class="icon">🤝</div><h3>Smart Settlements</h3><p>We suggest the fewest payments needed to clear all debts.</p></div>
+    <div class="feature"><div class="icon">📊</div><h3>Monthly Reports</h3><p>See where your money goes with monthly & category summaries.</p></div>
+    <div class="feature"><div class="icon">🔒</div><h3>Private Account</h3><p>Your group's data is visible only when you're logged in.</p></div>
+</div>
+
+<h2 class="section-title">How it works</h2>
+<div class="features">
+    <div class="feature"><div class="icon">📝</div><h3>1. Sign up</h3><p>Create your free account in seconds — no email needed.</p></div>
+    <div class="feature"><div class="icon">👥</div><h3>2. Add expenses</h3><p>Add your friends and every shared bill you want to track.</p></div>
+    <div class="feature"><div class="icon">✅</div><h3>3. Settle up</h3><p>Follow the suggestions — all debts cleared with minimal transfers.</p></div>
+</div>
+
+<p class="center muted" style="padding:50px 20px">Built for students, by a student. 💜</p>
+{% endblock %}

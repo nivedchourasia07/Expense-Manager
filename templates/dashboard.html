@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="container">
+
+    <h1 style="margin:10px 0">Hi, {{ session.username }} </h1>
+
+    <!-- Stats -->
+    <div class="stats">
+        <div class="stat"><div class="num">₹{{ '%.2f' | format(total_spent) }}</div><div class="lbl">Total Spent</div></div>
+        <div class="stat alt"><div class="num">{{ user.students | length }}</div><div class="lbl">Students</div></div>
+        <div class="stat"><div class="num">{{ user.expenses | length }}</div><div class="lbl">Entries</div></div>
+        <div class="stat warn"><div class="num">₹{{ '%.2f' | format(total_owed) }}</div><div class="lbl">Still Owed</div></div>
+    </div>
+
+    <div class="info-box"> <strong>How to use:</strong> 1) Add students → 2) Add expenses → 3) Follow the settlement suggestions. Green <strong>gets back</strong> = should receive money · Red <strong>owes</strong> = should pay.</div>
+
+    <div class="grid-2">
+        <!-- Add student -->
+        <div class="card">
+            <h2>👥 Add Student</h2>
+            <form method="POST" action="/add_student">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="name" placeholder="Student name" required>
+                <button type="submit" class="btn">Add</button>
+            </form>
+            {% if user.students %}<p class="hint" style="margin-top:10px">{{ user.students | join(', ') }}</p>{% endif %}
+        </div>
+
+        <!-- Record payment -->
+        <div class="card">
+            <h2> Record a Payment</h2>
+            {% if user.students %}
+            <form method="POST" action="/record_payment">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label>Who paid</label>
+                <select name="payer" required>{% for s in user.students %}<option>{{ s }}</option>{% endfor %}</select>
+                <label>Who received</label>
+                <select name="receiver" required>{% for s in user.students %}<option>{{ s }}</option>{% endfor %}</select>
+                <label>Amount (₹)</label>
+                <input type="number" name="amount" step="0.01" min="0.01" required>
+                <p class="hint">Use this when someone pays back a debt directly.</p>
+                <button type="submit" class="btn">Record Payment</button>
+            </form>
+            {% else %}<p class="muted">Add students first.</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Add expense -->
+    <div class="card">
+        <h2>💸 Add Expense</h2>
+        {% if user.students %}
+        <form method="POST" action="/add_expense">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="grid-2">
+                <div>
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="e.g. Pizza night" required>
+                    <label>Amount (₹)</label>
+                    <input type="number" name="amount" step="0.01" min="0.01" required>
+                </div>
+                <div>
+                    <label>Paid by</label>
+                    <select name="payer" required>{% for s in user.students %}<option>{{ s }}</option>{% endfor %}</select>
+                    <label>Category</label>
+                    <select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select>
+                </div>
+            </div>
+            <label>Split mode</label>
+            <select name="mode" id="mode" onchange="toggleShares()">
+                <option value="equal">Equal split — everyone pays the same</option>
+                <option value="exact">Exact amounts — type each share</option>
+                <option value="percent">Percentage — type each %</option>
+            </select>
+            <label>Participants</label>
+            {% for s in user.students %}<span class="check"><input type="checkbox" name="participants" value="{{ s }}" checked> {{ s }}</span>{% endfor %}
+            <div id="sharesBox" style="display:none">
+                <label>Shares</label>
+                <input type="text" name="shares" placeholder="Comma-separated, in the order shown above. e.g. 100, 50, 25">
+            </div>
+            <button type="submit" class="btn">Add Expense</button>
+        </form>
+        {% else %}<p class="muted">Add at least one student first.</p>{% endif %}
+    </div>
+
+    <!-- Balances + settlements -->
+    <div class="grid-2">
+        <div class="card">
+            <h2> Balances</h2>
+            {% if balances %}
+            <table>
+                <tr><th>Student</th><th>Balance</th><th>Status</th></tr>
+                {% for name, bal in balances.items() %}
+                <tr>
+                    <td><strong>{{ name }}</strong></td>
+                    <td>₹{{ '%.2f' | format(bal) }}</td>
+                    <td>{% if bal > 0.01 %}<span class="badge green">gets back</span>{% elif bal < -0.01 %}<span class="badge red">owes</span>{% else %}<span class="badge gray">settled</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}<p class="muted">No students yet.</p>{% endif %}
+        </div>
+
+        <div class="card">
+            <h2> Settlement Suggestions</h2>
+            {% if settlements %}
+                {% for s in settlements %}
+                <div class="settle"> <strong>{{ s.from }}</strong> pays <strong>{{ s.to }}</strong> ₹{{ '%.2f' | format(s.amount) }}</div>
+                {% endfor %}
+            {% else %}<p class="muted">Everyone is settled up! 🎉</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="grid-2">
+        <div class="card">
+            <h2> Monthly Spending</h2>
+            {% if months %}
+                {% for label, amt in months.items() %}
+                <div class="bar-row">
+                    <div class="bar-head"><span>{{ label }}</span><span>₹{{ '%.2f' | format(amt) }}</span></div>
+                    <div class="bar"><div class="fill" data-width="{{ ((amt / months_max) * 100) | round(1) if months_max else 0 }}"></div></div>
+                </div>
+                {% endfor %}
+            {% else %}<p class="muted">No expenses yet.</p>{% endif %}
+        </div>
+
+        <div class="card">
+            <h2> Spending by Category</h2>
+            {% if cats %}
+                {% for cat, amt in cats.items() %}
+                <div class="bar-row">
+                    <div class="bar-head"><span>{{ cat }}</span><span>₹{{ '%.2f' | format(amt) }} · {{ (amt / total_spent * 100) | round(0) | int }}%</span></div>
+                    <div class="bar"><div class="fill" data-width="{{ ((amt / cats_max) * 100) | round(1) if cats_max else 0 }}"></div></div>
+                </div>
+                {% endfor %}
+            {% else %}<p class="muted">No expenses yet.</p>{% endif %}
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+        <h2>📜 History</h2>
+        {% if user.expenses %}
+        <table>
+            <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Paid by</th><th></th></tr>
+            {% for e in user.expenses %}
+            <tr>
+                <td>{{ e.date }}</td>
+                <td>{{ e.description }}</td>
+                <td>{% if e.mode == 'payment' %}<span class="badge purple">Payment</span>{% else %}<span class="badge gray">{{ e.category }}</span>{% endif %}</td>
+                <td>₹{{ '%.2f' | format(e.amount) }}</td>
+                <td>{{ e.payer }}</td>
+                <td>
+                    <form method="POST" action="/delete_expense/{{ loop.index0 }}" onsubmit="return confirm('Delete this entry?')">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger" style="padding:6px 12px;font-size:.8em">✕</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}<p class="muted">No expenses yet.</p>{% endif %}
+    </div>
+
+    <div class="card">
+        <form method="POST" action="/reset" onsubmit="return confirm('Delete ALL your data? This cannot be undone.')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">Reset All My Data</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleShares(){
+    var m = document.getElementById('mode').value;
+    document.getElementById('sharesBox').style.display = (m === 'equal') ? 'none' : 'block';
+}
+</script>
+{% endblock %}
